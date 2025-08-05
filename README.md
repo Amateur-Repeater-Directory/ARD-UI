@@ -1,23 +1,10 @@
-# ARD-UI
-Maui Website, Maui Blazor Hybrid app, and shared logic between them. The UI will be 98% Web Technology in the Maui Hybrid Application, Maui basically runs our application in a browser, that is how we can share code and libraries like Leaflet in our Mobile and Desktop versions. 
+<img src="https://github.com/user-attachments/assets/b677c6cf-5a66-459f-bd1f-95d3ee820921"
+     width="120" height="120"
+     alt="ARD Logo"
+     style="float:left; margin:0 1em 1em 0;" />
 
-Again, it's important to remember the application itself is almost entirely written in Javascript and running inside a browser, even when running as a full Desktop application, so 98% of our code if not all of it is agnostic to whether we are running on an iPhone, iPad, our website, or as a full blown Windows Desktop.
+## UI Approach
 
-#### Learn About Maui (click me)
-[![Watch the video](https://img.youtube.com/vi/f8d-Qpfdzc4/hqdefault.jpg)](https://www.youtube.com/embed/f8d-Qpfdzc4)
+Technically, ARD is extremely lightweight, fast, and technology-agnostic. It’s built using pure HTML, JavaScript, and Bootstrap—no frameworks, no server requirements. It’s responsive and elegant on phones, tablets, and desktops alike. And because it’s so lightweight and open, anyone can contribute—even if you're new to software. The barrier to entry is low, and the possibilities are wide open.
 
-The 'Amateur Repeater Directory' application will be available in the Apple App Store as well as the Microsoft Story
-
-|   |   |
-| ------------ | ------------ |
-|**ARD-Website**|   *Web-based app (Blazor WebAssembly or Server)*
-|**ARD-Maui**|  *Desktop & Mobile app via MAUI Blazor Hybrid*
-|**ARD-Common**|  *Shared logic and components*
-
-
-The WhiskeyNiner protype currently these libraries for the UI.
-
-* Leaflet https://leafletjs.com/ (Mapping)
-* Wretch https://github.com/elbywan/wretch (Network Requests)
-* W2UI https://w2ui.com/web/
-* Fomantic UI - 2.9.3 https://github.com/fomantic/Fomantic-UI
+<div style="clear: both;"></div>
