@@ -1,0 +1,1294 @@
+﻿<!--
+  Amateur Repeater Directory
+  Copyright (c) 2025 Amateur Repeater Directory Contributors
+
+  This source code is licensed under the Apache License, Version 2.0 (Apache-2.0).
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at:
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Data files included in the ARD-RepeaterList GitHub repository are
+  licensed under the Creative Commons CC0 1.0 Universal (CC0-1.0)
+  Public Domain Dedication.
+
+  To view a copy of this license, visit:
+
+      https://creativecommons.org/publicdomain/zero/1.0/
+-->
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="icon" href="/favicon.ico?v=3" sizes="any">
+    <link rel="icon" type="image/png" href="/favicon-32.png?v=3" sizes="32x32">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" sizes="180x180">
+
+    <script type="module">import { DataLoader } from '/models/DataLoader.js'</script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amateur Repeater Directory</title>
+    <!-- Bootstrap & icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <link rel="stylesheet" href="style.css" />
+
+
+    <script type="module" src="./main.js?v=2025-09-07.2"></script>
+
+</head>
+<body class="bg-body text-body">
+
+    <nav class="navbar bg-body-secondary border-bottom px-3 toolbar sticky-top">
+        <div class="container-fluid px-0 d-flex align-items-center">
+
+            <div class="d-flex align-items-center gap-2 me-2">
+                <button id="toggleSidebar" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-sliders"></i>
+                    <span class="btn-label d-none d-sm-inline"> Properties</span>
+                </button>
+                <button id="btn-filter" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="bi bi-funnel"></i>
+                    <span class="btn-label d-none d-sm-inline"> Filter</span>
+                </button>
+                <button id="btn-export" class="btn btn-sm btn-outline-success" data-bs-toggle="offcanvas" data-bs-target="#repeaterDrawer">
+                    <i class="bi bi-download"></i>
+                    <span class="btn-label d-none d-sm-inline"> Export</span>
+                </button>
+            </div>
+
+            <div class="d-flex align-items-center flex-nowrap gap-2 ms-2 toolbar-controls">
+                <select id="citySelect" class="form-select form-select-sm" style="width:auto; min-width: 160px;">
+                </select>
+            </div>
+            <div class="d-flex align-items-center ms-auto">
+                <div class="btn-group me-2" role="group" aria-label="Comm Toggles">
+                    <button id="btn-rx" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="button" autocomplete="off">RX</button>
+                    <button id="btn-ping" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="button" autocomplete="off">Ping</button>
+                    <button id="btn-tx" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="button" autocomplete="off">TX</button>
+                </div>
+                <button id="btn-3d" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-cube"></i> 3D</button>
+                <button id="btn-map-toggle" class="btn btn-sm btn-outline-secondary me-2" aria-label="Toggle Map Style">
+                    Map <i class="bi bi-moon-stars"></i>
+                </button>
+                <button id="btn-theme-toggle" class="btn btn-sm btn-outline-secondary me-3" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars"></i>
+                </button>
+            </div>
+            <button id="LoginLogoutButton" class="btn btn-sm btn-primary">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span class="login-label">Login</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="main-container right-sidebar">
+        <div id="sidebar" class="bg-body-tertiary p-3 sidebar hidden">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h5 class="mb-0">Repeater Properties</h5>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <button type="button" id="btnAddRepeater" class="btn btn-link p-0" 
+                        data-bs-toggle="tooltip" title="Add New Repeater" aria-label="Add repeater">
+                        <i class="bi bi-plus-square"></i>
+                    </button>
+                    <button type="button" id="btnEditRepeater" class="btn btn-link p-0" 
+                         data-bs-toggle="tooltip" title="Edit Repeater" aria-label="Edit repeater">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                </div>
+            </div>
+            <table class="table table-sm table-bordered table-striped">
+                <colgroup>
+                    <col style="width: 1%;">
+                    <col style="width: 99%;">
+                </colgroup>
+                <tbody>
+                    <tr><th>Callsign</th>           <td data-field="callsign"></td></tr>
+                    <tr><th>Band</th>               <td data-field="band"></td></tr>
+                    <tr><th>Output Frequency</th>   <td data-field="outputFrequency"></td></tr>
+                    <tr><th>Input Frequency</th>    <td data-field="inputFrequency"></td></tr>
+                    <tr><th>Offset</th>             <td data-field="offset"></td></tr>
+                    <tr><th>Tone Mode</th>          <td data-field="toneMode"></td></tr>
+                    <tr><th>CTCSS Tx</th>           <td data-field="ctcssTx"></td></tr>
+                    <tr><th>CTCSS Rx</th>           <td data-field="ctcssRx"></td></tr>
+                    <tr><th>Cross Tone</th>         <td data-field="isCrossTone"></td></tr>
+                    <tr><th>Latitude</th>           <td data-field="latitude"></td></tr>
+                    <tr><th>Longitude</th>          <td data-field="longitude"></td></tr>
+                    <tr><th>Elevation</th>          <td data-field="elevation"></td></tr>
+                    <tr><th>Above Ground Level</th> <td data-field="aboveGroundLevel"></td></tr>
+                    <tr><th>Precise Lat/Long?</th>  <td data-field="isLatLongPrecise"></td></tr>
+                    <tr><th>State</th>              <td data-field="state"></td></tr>
+                    <tr><th>County</th>             <td data-field="county"></td></tr>
+                    <tr><th>Nearest City</th>       <td data-field="nearestCity"></td></tr>
+                    <tr><th>Operational</th>        <td data-field="isOperational"></td></tr>
+                    <tr><th>Open to Public</th>     <td data-field="isOpen"></td></tr>
+                    <tr><th>Coordinated</th>        <td data-field="isCoordinated"></td></tr>
+                    <tr><th>Skywarn</th>            <td data-field="isSkywarn"></td></tr>
+                    <tr><th>ARES</th>               <td data-field="isAres"></td></tr>
+                    <tr><th>RACES</th>              <td data-field="isRaces"></td></tr>
+                    <tr><th>Has Loc Error</th>      <td data-field="hasLocationError"></td></tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="drag-handle" id="dragHandle" style="display: none;"></div>
+        <div class="map-container"><div id="map"></div></div>
+    </div>
+
+
+    <footer class="footer px-3 small">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <!-- Text (hidden on phones) -->
+                <div class="col-sm-auto d-none d-sm-block">
+                    Amateur Repeater Directory, © 2025 — Free, Verified, Community-Maintained
+                </div>
+
+                <!-- Icons (centered on phones, right-aligned on larger screens) -->
+                <div class="col-12 col-sm text-sm-end d-flex justify-content-center justify-content-sm-end gap-3 mt-sm-0">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#aboutModal"><i class="bi bi-info-circle text-primary-emphasis"></i></a>
+                    <a href="https://www.youtube.com/@AmateurRepeaterDirectory"><i class="bi bi-youtube text-danger"></i></a>
+                    <a href="https://discord.com/channels/1399856491510497332/@home"><i class="bi bi-discord text-primary"></i></a>
+                    <a href="https://x.com/AmateurRepeater"><i class="bi bi-twitter text-info"></i></a>
+                    <a href="https://www.reddit.com/r/AmateurRepeaterDirect/?feed=home"><i class="bi bi-reddit text-danger"></i></a>
+                    <a href="https://github.com/Amateur-Repeater-Directory"><i class="bi bi-github"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal -->
+    <div class="modal fade" id="logoModal" tabindex="-1" aria-labelledby="logoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark">
+                <div class="modal-body text-center p-0">
+                    <img src="img/logo.png" alt="Amateur Repeater Directory Logo" class="img-fluid w-100" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!--        Filter Modal       -->
+    <!-- ========================= -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <ul class="nav nav-tabs mb-3" id="filterTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="bands-tab" data-bs-toggle="tab" data-bs-target="#bands-pane" type="button" role="tab">Frequency Bands</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="modes-tab" data-bs-toggle="tab" data-bs-target="#modes-pane" type="button" role="tab">Modes</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="emerg-tab" data-bs-toggle="tab" data-bs-target="#emerg-pane" type="button" role="tab">Emergency Networks</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- Bands -->
+                        <div class="tab-pane fade show active" id="bands-pane" role="tabpanel" aria-labelledby="bands-tab">
+                            <div class="filter-box">
+                                <div class="row row-cols-2 row-cols-md-3 g-3">
+                                    <!-- Column entries -->
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-23cm">
+                                            <label class="form-check-label" for="b-23cm">23cm</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-33cm">
+                                            <label class="form-check-label" for="b-33cm">33cm</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-70cm" checked>
+                                            <label class="form-check-label" for="b-70cm">70cm</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-2m" checked>
+                                            <label class="form-check-label" for="b-2m">2m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-125m">
+                                            <label class="form-check-label" for="b-125m">1.25m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-6m">
+                                            <label class="form-check-label" for="b-6m">6m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-10m">
+                                            <label class="form-check-label" for="b-10m">10m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-12m">
+                                            <label class="form-check-label" for="b-12m">12m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-15m">
+                                            <label class="form-check-label" for="b-15m">15m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-17m">
+                                            <label class="form-check-label" for="b-17m">17m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-20m">
+                                            <label class="form-check-label" for="b-20m">20m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-30m">
+                                            <label class="form-check-label" for="b-30m">30m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-40m">
+                                            <label class="form-check-label" for="b-40m">40m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-80m">
+                                            <label class="form-check-label" for="b-80m">80m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-160m">
+                                            <label class="form-check-label" for="b-160m">160m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-630m">
+                                            <label class="form-check-label" for="b-630m">630m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-2200m">
+                                            <label class="form-check-label" for="b-2200m">2,200m</label>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check form-switch form-switch-sm">
+                                            <input class="form-check-input" type="checkbox" id="b-gmrs">
+                                            <label class="form-check-label" for="b-gmrs">GMRS</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modes -->
+                        <div class="tab-pane fade" id="modes-pane" role="tabpanel" aria-labelledby="modes-tab">
+                            <div class="filter-box">
+                                <div class="row row-cols-2 row-cols-md-3 g-3">
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-fm"><label class="form-check-label" for="m-fm">FM</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-dmr"><label class="form-check-label" for="m-dmr">DMR</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-dstar"><label class="form-check-label" for="m-dstar">D-Star</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-m17"><label class="form-check-label" for="m-m17">M17</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-nxdn"><label class="form-check-label" for="m-nxdn">NXDN</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-p25"><label class="form-check-label" for="m-p25">P25</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="m-fusion"><label class="form-check-label" for="m-fusion">System Fusion</label></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Networks -->
+                        <div class="tab-pane fade" id="emerg-pane" role="tabpanel" aria-labelledby="emerg-tab">
+                            <div class="filter-box">
+                                <div class="row row-cols-2 row-cols-md-3 g-3">
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="e-ares"><label class="form-check-label" for="e-ares">ARES</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="e-races"><label class="form-check-label" for="e-races">RACES</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="e-skywarn"><label class="form-check-label" for="e-skywarn">SKYWARN</label></div></div>
+                                    <div class="col"><div class="form-check form-switch form-switch-sm"><input class="form-check-input" type="checkbox" id="e-canwarn"><label class="form-check-label" for="e-canwarn">CANWARN</label></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pt-0">
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Apply</button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== -->
+    <!--        Login Modal       -->
+    <!-- ======================== -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 justify-content-center">
+                    <h5 class="modal-title fw-semibold" id="loginModalLabel">
+                        <i class="bi bi-lock-fill login-header-icon"></i> Login to Access your Account
+                    </h5>
+                </div>
+
+                <div class="modal-body pt-0">
+                    <form id="loginForm" novalidate>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="login-email" class="form-label visually-hidden">Email</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="login-email-addon">
+                                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="email"
+                                       class="form-control"
+                                       id="login-email"
+                                       name="email"
+                                       placeholder="E-mail address"
+                                       autocomplete="email"
+                                       required
+                                       aria-describedby="login-email-addon login-email-feedback" />
+
+                                <!-- removed right-side label -->
+                                <div id="login-email-feedback" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label visually-hidden">Password</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="login-password-addon">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control"
+                                       id="login-password"
+                                       name="password"
+                                       placeholder="Password"
+                                       autocomplete="new-password"
+                                       required
+                                       minlength="8"
+                                       spellcheck="false"
+                                       autocapitalize="off"
+                                       aria-describedby="login-password-addon login-password-feedback" />
+
+                                <!-- removed right-side label -->
+                                <div id="login-password-feedback" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <p class="password-hint mb-3">
+                            Password: 8 characters minimum, Contain at least 1 upper case, 1 lower case, 1 number, and 1 special character !@#$%^&*?$
+                        </p>
+
+                        <hr class="my-3" />
+                        <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                            <a href="#" id="link-forgot" class="link-primary text-decoration-none">Forgot Password</a>
+                            <span class="text-body-secondary"> or </span>
+                            <a href="#" id="link-create-account" class="link-primary text-decoration-none">Create Account</a>
+                        </div>
+
+                        <div class="modal-footer border-0 justify-content-center pt-0">
+                            <button type="submit" class="btn btn-primary px-5">Login</button>
+                            <button type="button" class="btn btn-outline-secondary px-5" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================== -->
+    <!--      Register Modal      -->
+    <!-- ======================== -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 justify-content-center">
+                    <h5 class="modal-title fw-semibold" id="registerModalLabel">
+                        <i class="bi bi-person-fill login-header-icon"></i> Create Account
+                    </h5>
+                </div>
+
+                <div class="modal-body pt-0">
+                    <form id="registerForm" novalidate>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="reg-username" class="form-label visually-hidden">Username</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="reg-username-addon">
+                                    <i class="bi bi-person" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="text"
+                                       class="form-control"
+                                       id="reg-username"
+                                       name="username"
+                                       placeholder="Callsign or other ..."
+                                       autocomplete="username"
+                                       required
+                                       aria-describedby="reg-username-addon reg-username-feedback" />
+
+                                <div id="reg-username-feedback" class="invalid-feedback">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="reg-email" class="form-label visually-hidden">Email</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="reg-email-addon">
+                                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="email"
+                                       class="form-control"
+                                       id="reg-email"
+                                       name="email"
+                                       placeholder="E-mail address"
+                                       autocomplete="email"
+                                       required
+                                       aria-describedby="reg-email-addon reg-email-feedback" />
+
+                                <div id="reg-email-feedback" class="invalid-feedback">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="reg-password" class="form-label visually-hidden">Password</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="reg-password-addon">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control"
+                                       id="reg-password"
+                                       name="password"
+                                       placeholder="Password"
+                                       autocomplete="new-password"
+                                       required
+                                       minlength="8"
+                                       spellcheck="false"
+                                       autocapitalize="off"
+                                       aria-describedby="reg-password-addon reg-password-feedback" />
+
+                                <div id="reg-password-feedback" class="invalid-feedback">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Confirm password -->
+                        <div class="mb-3">
+                            <label for="reg-confirm" class="form-label visually-hidden">Confirm password</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="reg-confirm-addon">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control"
+                                       id="reg-confirm"
+                                       name="confirmPassword"
+                                       placeholder="Confirm password"
+                                       autocomplete="new-password"
+                                       required
+                                       minlength="8"
+                                       spellcheck="false"
+                                       autocapitalize="off"
+                                       aria-describedby="reg-confirm-addon reg-confirm-feedback" />
+
+                                <div id="reg-confirm-feedback" class="invalid-feedback">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="reg-terms" name="terms" required>
+                            <label class="form-check-label" for="reg-terms">
+                                I agree to the terms and conditions <span class="text-danger">*</span>
+                            </label>
+                            <div id="reg-terms-feedback" class="invalid-feedback"></div>
+                        </div>
+
+                        <p class="password-hint mb-3">
+                            Password: 8 characters minimum, Contain at least 1 upper case, 1 lower case, 1 number, and 1 special character !@#$%^&*?$
+                        </p>
+
+                        <div class="modal-footer border-0 justify-content-center pt-0">
+                            <button type="submit" class="btn btn-primary px-5">Register</button>
+                            <button type="button" class="btn btn-outline-secondary px-5" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================== -->
+    <!--     Forgot Password Modal   -->
+    <!-- =========================== -->
+    <div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 justify-content-center">
+                    <h5 class="modal-title fw-semibold" id="forgotModalLabel">
+                        <i class="bi bi-lock login-header-icon"></i> Forgot Password
+                    </h5>
+                </div>
+
+                <div class="modal-body pt-0">
+                    <form id="forgotForm" novalidate>
+                        <div class="mb-4">
+                            <label for="forgot-email" class="form-label visually-hidden">Email</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="forgot-email-addon">
+                                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="email"
+                                       class="form-control"
+                                       id="forgot-email"
+                                       name="email"
+                                       placeholder="E-mail address"
+                                       autocomplete="email"
+                                       required
+                                       aria-describedby="forgot-email-addon forgot-email-feedback" />
+
+                                <div id="forgot-email-feedback" class="invalid-feedback">
+                                    Please enter a valid email.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer border-0 justify-content-center pt-0">
+                            <button type="submit" class="btn btn-primary px-5">Send Reset Email</button>
+                            <button type="button" class="btn btn-outline-secondary px-5" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================== -->
+    <!--     Reset Password Modal    -->
+    <!-- =========================== -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 justify-content-center">
+                    <h5 class="modal-title fw-semibold" id="resetPasswordLabel">
+                        <i class="bi bi-person-fill login-header-icon"></i> Reset Password
+                    </h5>
+                </div>
+
+                <div class="modal-body pt-0">
+                    <form id="resetPasswordForm" novalidate>
+                        <!-- set from your URL token handler -->
+                        <input type="hidden" id="resetToken" name="token" />
+
+                        <!-- New password -->
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label visually-hidden">Password</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="new-password-addon">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control"
+                                       id="newPassword"
+                                       name="newPassword"
+                                       placeholder="Password"
+                                       autocomplete="new-password"
+                                       required
+                                       spellcheck="false"
+                                       autocapitalize="off"
+                                       minlength="8"
+                                       aria-describedby="new-password-addon new-password-feedback" />
+
+                                <div id="newPasswordFeedback" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <!-- Confirm password -->
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label visually-hidden">Confirm Password</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="confirm-password-addon">
+                                    <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control"
+                                       id="confirmPassword"
+                                       name="confirmPassword"
+                                       placeholder="Confirm Password"
+                                       autocomplete="new-password"
+                                       required
+                                       spellcheck="false"
+                                       autocapitalize="off"
+                                       minlength="8"
+                                       aria-describedby="confirm-password-addon confirm-password-feedback" />
+
+                                <div id="confirmPasswordFeedback" class="invalid-feedback"></div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <p class="password-hint mb-3">
+                            Password: 8 characters minimum, Contain at least 1 upper case, 1 lower case, 1 number, and 1 special character !@#$%^&*?$
+                        </p>
+
+                        <div class="modal-footer border-0 justify-content-center pt-0">
+                            <button type="submit" id="resetPasswordSubmit" class="btn btn-primary px-5">Set Password</button>
+                            <button type="button" class="btn btn-outline-secondary px-5" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================== -->
+    <!--     About Modal   -->
+    <!-- =========================== -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 flex-column text-center">
+                    <h3 class="fw-bold mb-1">Amateur Repeater Directory</h3>
+                    <p class="text-muted fs-6 mb-0">Free • Verified • Community-Maintained</p>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img src="/img/logo.png" alt="ARD Logo" class="about-logo img-fluid">
+
+                    <!-- Mission Text -->
+                    <p>The Amateur Repeater Directory (ARD) exists to make repeater information freely available, openly verifiable, and truly community-maintained. Fully open source and hosted on GitHub, ARD is a grassroots alternative to closed and proprietary systems. We believe amateur radio works best when its infrastructure is transparent and accessible to everyone. Whether you're programming your first handheld or chasing distant signals from a mountaintop, ARD provides a trustworthy foundation of data — and an invitation to contribute, explore, and build the future with us.</p>
+
+                    <p>ARD was born from a personal mission: to reach out further and further. Using real elevation and line-of-sight terrain data, ARD scans a full 360° from your location, surfacing repeaters you may never have known were reachable. You might search within 60 miles and discover a repeater 180 miles away, made possible not by guesswork, but by physics. It's a new kind of way — and it makes ham radio more exciting, more accessible, and more fun.</p>
+
+                    <p>You can also mark yourself online on a given repeater, visible to others in real time. Our live activity map gives a nationwide view of active systems — not just where repeaters are, but where conversations are happening. You can instantly see which repeaters are alive, and who’s on them.</p>
+
+                    <p>Technically, ARD is extremely lightweight, fast, and technology-agnostic. It’s built using pure HTML, JavaScript, and Bootstrap — no frameworks, no server requirements. It’s responsive and elegant on phones, tablets, and desktops alike. And because it’s so lightweight and open, anyone can contribute — even if you're new to software. The barrier to entry is low, and the possibilities are wide open.</p>
+
+                    <p>What truly sets ARD apart isn’t just the open data — it’s the tools and spirit we’re building around it. Our mission isn’t simply to make a better directory, but to spark innovation across amateur radio. We want to enable others to take ARD further: to experiment, remix, and reimagine what’s possible with modern, accessible tools.</p>
+
+                    <p>And we’re just getting started. We’re actively exploring integration with Meshtastic and other experimental RF technologies to feed live data into the ARD ecosystem, and we're not taking mesh nodes, but Repeater usage. The tools are open. The data is yours. The next leap in ham radio might just come from you.</p>
+
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Repeater Context Modal   -->
+    <!-- ======================== -->
+    <div class="modal" id="repeaterContextModal" tabindex="-1" aria-labelledby="repeaterContextModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content w-auto mx-auto mw-100">
+                <div class="modal-header">
+                    <h6 class="modal-title w-100 d-flex justify-content-center align-items-center position-relative" id="repeaterContextModalLabel">
+                        <button type="button" id="repeaterModalAdvancedBtn"
+                                class="btn btn-link p-0 m-0 border-0 bg-transparent position-absolute start-0"
+                                aria-label="Show advanced tools">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                        <span id="rcd-callsign">CALLSIGN</span>
+                    </h6>
+                    <button type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <!-- Repeater Info: Frequency and Location -->
+                    <div class="mb-2 text-center">
+                        <strong><span id="rcd-frequency">0.00000</span></strong><br>
+                        <span id="rcd-location">City, State</span>
+                    </div>
+
+                    <!-- Group 1: Connection Status (centered) -->
+                    <div class="mb-2 text-center">
+                        <div class="btn-group" role="group" aria-label="Connection Status">
+                            <input type="checkbox" class="btn-check" id="rxOption" autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="rxOption">RX</label>
+
+                            <input type="checkbox" class="btn-check" id="pingOption" autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="pingOption">Ping</label>
+
+                            <input type="checkbox" class="btn-check" id="txOption" autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="txOption">TX</label>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="d-grid gap-2 mb-3">
+                        <button id="btnlineOfSight" class="btn btn-sm btn-outline-secondary w-100">
+                            Line of Sight
+                        </button>
+                    </div>
+                    <hr />
+                    <!-- Group 2: Live Actions -->
+                    <div class="d-flex gap-2 mb-3">
+                        <button id="toggleOnlineBtn" class="btn btn-sm btn-outline-secondary flex-fill">
+                            Online
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary flex-fill">
+                            Who's On
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offcanvas: Advanced Tools -->
+    <!-- Repeater Drawer -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="repeaterDrawer" aria-labelledby="repeaterDrawerLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="repeaterDrawerLabel">Repeaters</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body p-0">
+            <section class="card shadow-sm border-0">
+                <div class="card-header d-flex flex-wrap gap-2 align-items-end">
+                    <div class="me-auto">
+                        <small class="text-body-secondary">Sort, filter, export visible rows</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <input id="repSearch" type="search" class="form-control form-control-sm"
+                               placeholder="Search callsign / city / state" style="width: 18rem;">
+                        <button id="btnExportChirp" class="btn btn-success btn-sm">Export → CHIRP</button>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 65vh; overflow:auto;">
+                        <table id="repTable" class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light position-sticky top-0">
+                                <tr>
+                                    <th data-key="OutputFrequency">Frequency <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="Band">Band <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="Distance">Distance (mi) <span class="sort"></span></th>
+                                    <th data-key="Location">Location <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="_toneMode">Tone Mode <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="CTCSSTx">Tone <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="OffsetSign">Duplex <span class="sort"></span></th>
+                                    <th data-key="Offset">Offset (MHz) <span class="sort"></span></th>
+                                    <th class="col-narrow" data-key="Mode">Mode <span class="sort"></span></th>
+                                    <th data-key="_comment">Comment <span class="sort"></span></th>
+                                </tr>
+                                <!-- filter row -->
+                                <tr id="repFilters">
+                                    <th>
+                                        <!-- NEW: frequency substring match -->
+                                        <input id="fFreqSub" class="form-control form-control-sm" type="text" placeholder="contains">
+                                    </th>
+                                    <th>
+                                        <select id="fBand" class="form-select form-select-sm"><option value="">All</option></select>
+                                    </th>
+                                    <th><input id="fDistMax" class="form-control form-control-sm" type="number" step="0.01" placeholder="≤ mi"></th>
+                                    <th><input id="fLocation" class="form-control form-control-sm" type="text" placeholder="contains"></th>
+                                    <th>
+                                        <select id="fToneMode" class="form-select form-select-sm"><option value="">All</option></select>
+                                    </th>
+                                    <th><input id="fToneTx" class="form-control form-control-sm" type="number" step="0.1" placeholder="= Hz"></th>
+                                    <th>
+                                        <select id="fDuplex" class="form-select form-select-sm">
+                                            <option value="">All</option>
+                                            <option value="+">+</option>
+                                            <option value="-">-</option>
+                                            <option value="off">off</option>
+                                        </select>
+                                    </th>
+                                    <th><input id="fOffset" class="form-control form-control-sm" type="number" step="0.01" placeholder="= MHz"></th>
+                                    <th>
+                                        <select id="fMode" class="form-select form-select-sm"><option value="">All</option></select>
+                                    </th>
+                                    <th><input id="fComment" class="form-control form-control-sm" type="text" placeholder="contains"></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="px-3 py-2 small text-body-secondary"><span id="repCount">0</span> shown</div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Elevation Charts         -->
+    <!-- ======================== -->
+    <div class="modal fade" id="losModal" tabindex="-1" aria-labelledby="losModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header align-items-center">
+                    <h5 class="modal-title" id="losModalTitle">Line of Sight</h5>
+
+                    <!-- Right-aligned Bootstrap tabs -->
+                    <ul class="nav nav-pills ms-auto me-2" id="losViewNav" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="los-view-a-tab"
+                                    data-bs-toggle="tab" data-bs-target="#los-view-a"
+                                    type="button" role="tab" aria-controls="los-view-a" aria-selected="true">
+                                Elevation & Fresnel
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="los-view-b-tab"
+                                    data-bs-toggle="tab" data-bs-target="#los-view-b"
+                                    type="button" role="tab" aria-controls="los-view-b" aria-selected="false">
+                                Clearance (ft)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body pt-2">
+                    <div class="tab-content" id="losViewContent">
+                        <div class="tab-pane fade show active" id="los-view-a" role="tabpanel" aria-labelledby="los-view-a-tab">
+                            <canvas id="losCanvasA"></canvas>
+                        </div>
+                        <div class="tab-pane fade" id="los-view-b" role="tabpanel" aria-labelledby="los-view-b-tab">
+                            <canvas id="losCanvasB"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <small id="losModalLegend" class="text-muted"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================== -->
+    <!-- Add Home Location        -->
+    <!-- ======================== -->
+    <div class="modal fade" id="dlgAddHomeLoc" tabindex="-1" aria-labelledby="dlgAddHomeLocLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <form class="modal-content needs-validation" id="formAddHomeLoc" novalidate>
+                <div class="modal-header py-2">
+                    <h5 class="modal-title" id="dlgAddHomeLocLabel">Add a Home Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body py-3">
+                    <div class="mb-3">
+                        <input id="hlName" class="form-control" placeholder="Location Name" maxlength="60" required>
+                        <div id="hlName-feedback" class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input id="hlLat" class="form-control" disabled aria-describedby="hlLatLabel">
+                        <span id="hlLatLabel" class="input-group-text coord-label text-body-secondary">Latitude</span>
+                    </div>
+
+                    <div class="input-group">
+                        <input id="hlLng" class="form-control" disabled aria-describedby="hlLngLabel">
+                        <span id="hlLngLabel" class="input-group-text coord-label text-body-secondary">Longitude</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer py-2">
+                    <button class="btn btn-primary" type="submit">Save</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================== -->
+    <!-- Add/Edit Repeater        -->
+    <!-- ======================== -->
+    <div class="modal fade" id="rptrAddEdit_nameModal" tabindex="-1" data-bs-theme="auto">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <form id="rptrAddEdit_nameForm" class="needs-validation" novalidate>
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Repeater:</h5>&nbsp;&nbsp;&nbsp;
+                        <input id="rptrAddEdit_callsign" name="rptrAddEdit_callsign" type="text"
+                               class="form-control" placeholder="Callsign"
+                               data-bs-toggle="tooltip" title="tooltip goes here"
+                               style="max-width: 200px;">
+                        <div id="rptrAddEdit_callsignFeedback" class="invalid-feedback"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="rptrAddEdit_repeaterId" name="rptrAddEdit_repeaterId">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-3" id="rptrAddEdit_modalTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="rptrAddEdit_radio-tab" data-bs-toggle="tab"
+                                        data-bs-target="#rptrAddEdit_radioTab" type="button" role="tab">
+                                    Radio
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rptrAddEdit_mapping-tab" data-bs-toggle="tab"
+                                        data-bs-target="#rptrAddEdit_mappingTab" type="button" role="tab">
+                                    Mapping
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rptrAddEdit_info-tab" data-bs-toggle="tab"
+                                        data-bs-target="#rptrAddEdit_infoTab" type="button" role="tab">
+                                    Information
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Radio Tab -->
+                            <div class="tab-pane fade show active" id="rptrAddEdit_radioTab" role="tabpanel">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="rptrAddEdit_outputFrequency" class="form-label">Output Freq</label>
+                                        <input id="rptrAddEdit_outputFrequency" name="rptrAddEdit_outputFrequency"
+                                               type="text" class="form-control" required
+                                               aria-describedby="outputFrequencyFeedback" inputmode="decimal"
+                                               pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
+                                               title="tooltip goes here">
+                                        <div id="rptrAddEdit_outputFrequencyFeedback" class="invalid-feedback">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <label for="rptrAddEdit_duplex" class="form-label">Duplex</label>
+                                        <select id="rptrAddEdit_duplex" name="rptrAddEdit_duplex"
+                                                class="form-select w-auto" data-bs-toggle="tooltip"
+                                                title="tooltip goes here">
+                                            <option value=""></option>
+                                            <option value="-">-</option>
+                                            <option value="+">+</option>
+                                            <option value="Split">Split</option>
+                                            <option value="Off">Off</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md">
+                                        <label for="rptrAddEdit_offset" class="form-label">Offset</label>
+                                        <input id="rptrAddEdit_offset" name="rptrAddEdit_offset" type="text"
+                                               class="form-control" 
+                                               inputmode="decimal" pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
+                                               title="tooltip goes here">
+                                        <div id="rptrAddEdit_offsetFeedback" class="invalid-feedback">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="rptrAddEdit_inputFrequency" class="form-label">
+                                            Input Frequency
+                                        </label>
+                                        <input id="rptrAddEdit_inputFrequency" name="rptrAddEdit_inputFrequency"
+                                               type="text" class="form-control" required
+                                               aria-describedby="inputFrequencyFeedback" inputmode="decimal"
+                                               pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
+                                               title="tooltip goes here">
+                                        <div id="rptrAddEdit_inputFrequencyFeedback" class="invalid-feedback">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-auto">
+                                        <label for="rptrAddEdit_band" class="form-label">Band</label>
+                                        <input id="rptrAddEdit_band" name="rptrAddEdit_band" type="text" disabled
+                                               class="form-control" readonly data-bs-toggle="tooltip"
+                                               title="tooltip goes here">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label for="rptrAddEdit_toneMode" class="form-label">Tone Mode</label>
+                                        <select id="rptrAddEdit_toneMode" name="rptrAddEdit_toneMode"
+                                                class="form-select" data-bs-toggle="tooltip" title="tooltip goes here">
+                                            <option value=""></option>
+                                            <option value="Tone">Tone</option>
+                                            <option value="TSQL">TSQL</option>
+                                            <option value="DTCS">DTCS</option>
+                                            <option value="Cross">Cross</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md">
+                                        <label for="rptrAddEdit_ctcssTx" class="form-label">CTCSS Tx</label>
+                                        <select id="rptrAddEdit_ctcssTx" name="rptrAddEdit_ctcssTx" class="form-select"
+                                                data-bs-toggle="tooltip" title="tooltip goes here"></select>
+                                    </div>
+                                    <div class="col-md">
+                                        <label for="rptrAddEdit_ctcssRx" class="form-label">CTCSS Rx</label>
+                                        <select id="rptrAddEdit_ctcssRx" name="rptrAddEdit_ctcssRx" class="form-select"
+                                                data-bs-toggle="tooltip" title="tooltip goes here"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mapping Tab -->
+                            <div class="tab-pane fade" id="rptrAddEdit_mappingTab" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="rptrAddEdit_lat" class="form-label">Latitude</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-compass" aria-hidden="true"></i></span>
+                                            <input id="rptrAddEdit_lat" name="rptrAddEdit_lat" type="text"
+                                                   class="form-control"
+                                                   inputmode="decimal" pattern="^-?[0-9]+(\.[0-9]+)?$"
+                                                   aria-describedby="rptrAddEdit_latFeedback"
+                                                   data-bs-toggle="tooltip" title="tooltip goes here">
+                                            <div id="rptrAddEdit_latFeedback" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="rptrAddEdit_lng" class="form-label">Longitude</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-globe" aria-hidden="true"></i></span>
+                                            <input id="rptrAddEdit_lng" name="rptrAddEdit_lng" type="text"
+                                                   class="form-control"
+                                                   inputmode="decimal" pattern="^-?[0-9]+(\.[0-9]+)?$"
+                                                   aria-describedby="rptrAddEdit_lngFeedback"
+                                                   data-bs-toggle="tooltip" title="tooltip goes here">
+                                            <div id="rptrAddEdit_lngFeedback" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <div class="form-check form-switch form-switch-sm">
+                                                <input class="form-check-input" type="checkbox" id="rptrAddEdit_precise"
+                                                       data-bs-toggle="tooltip" title="tooltip goes here">
+                                                <label class="form-check-label" for="rptrAddEdit_precise">Precise</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <div class="form-check form-switch form-switch-sm">
+                                                <input class="form-check-input" type="checkbox" id="rptrAddEdit_guess"
+                                                       data-bs-toggle="tooltip" title="tooltip goes here">
+                                                <label class="form-check-label" for="rptrAddEdit_guess">Guess</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mt-2">
+
+                                        <div class="col-md-4">
+                                            <label for="rptrAddEdit_nearestCity" class="form-label">Nearest City</label>
+                                            <input id="rptrAddEdit_nearestCity" name="rptrAddEdit_nearestCity" type="text"
+                                                   class="form-control" readonly disabled data-bs-toggle="tooltip"
+                                                   title="tooltip goes here">
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label for="rptrAddEdit_state" class="form-label">State</label>
+                                            <input id="rptrAddEdit_state" name="rptrAddEdit_state" type="text"
+                                                   class="form-control" readonly disabled data-bs-toggle="tooltip"
+                                                   title="tooltip goes here">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="rptrAddEdit_county" class="form-label">County</label>
+                                            <input id="rptrAddEdit_county" name="rptrAddEdit_county" type="text"
+                                                   class="form-control" readonly disabled data-bs-toggle="tooltip"
+                                                   title="tooltip goes here">
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-md-5">
+                                            <label for="rptrAddEdit_aboveGroundLevel" class="form-label">
+                                                Above Ground Level (ft)
+                                            </label>
+                                            <input id="rptrAddEdit_aboveGroundLevel" name="rptrAddEdit_aboveGroundLevel"
+                                                   type="text" class="form-control" inputmode="decimal"
+                                                   pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
+                                                   title="tooltip goes here">
+                                            <div id="rptrAddEdit_aboveGroundLevelFeedback" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 d-flex align-items-end">
+                                            <div class="form-check form-switch form-switch-sm">
+                                                <input class="form-check-input" type="checkbox" id="rptrAddEdit_aboveGroundLevelPrecise"
+                                                       data-bs-toggle="tooltip" title="tooltip goes here">
+                                                <label class="form-check-label" for="rptrAddEdit_aboveGroundLevelPrecise">Precise</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Information Tab -->
+                            <div class="tab-pane fade" id="rptrAddEdit_infoTab" role="tabpanel">
+                                <!-- Operational Status -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_isOperational">
+                                            <label class="form-check-label" for="rptrAddEdit_isOperational">Operational</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_isOpen">
+                                            <label class="form-check-label" for="rptrAddEdit_isOpen">Open</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_isCoordinated">
+                                            <label class="form-check-label" for="rptrAddEdit_isCoordinated">Coordinated</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Affiliation / Emergency Services -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_ares">
+                                            <label class="form-check-label" for="rptrAddEdit_ares">ARES</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_races">
+                                            <label class="form-check-label" for="rptrAddEdit_races">RACES</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-center">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="rptrAddEdit_skywarn">
+                                            <label class="form-check-label" for="rptrAddEdit_skywarn">Skywarn</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Notes -->
+                                <div class="mb-3">
+                                    <label for="rptrAddEdit_notes" class="form-label">Notes</label>
+                                    <textarea id="rptrAddEdit_notes" name="rptrAddEdit_notes" class="form-control" rows="4"
+                                              maxlength="1000" placeholder="Enter additional information here..."
+                                              data-bs-toggle="tooltip" title="tooltip goes here"></textarea>
+                                    <div id="rptrAddEdit_notesFeedback" class="invalid-feedback"></div>
+                                </div>
+
+                                <!-- Created/Updated (optional, read-only for admin/debug) -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="rptrAddEdit_createdDate" class="form-label">Created Date</label>
+                                        <input id="rptrAddEdit_createdDate" name="rptrAddEdit_createdDate" type="text"
+                                               class="form-control" readonly disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rptrAddEdit_updatedDate" class="form-label">Updated Date</label>
+                                        <input id="rptrAddEdit_updatedDate" name="rptrAddEdit_updatedDate" type="text"
+                                               class="form-control" readonly disabled>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ======================== -->
+    <!-- Toast Popup              -->
+    <!-- ======================== -->
+    <div class="toast-container position-fixed start-50 translate-middle-x p-3" style="z-index: 99999; top: 12vh;">
+        <div id="dynamicToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4500">
+            <div class="toast-header">
+                <strong id="toast-caption" class="me-auto">Error</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JS dependencies and your modular main.js -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/hosuaby/Leaflet.SmoothMarkerBouncing@v3.0.3/dist/bundle.js" crossorigin="anonymous"></script>
+    <script type="module" src="js/helpers/repeaterDrawer.js"></script>
+</body>
+</html>
+

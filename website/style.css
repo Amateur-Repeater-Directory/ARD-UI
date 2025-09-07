@@ -1,0 +1,959 @@
+﻿/*
+  Amateur Repeater Directory
+  Copyright (c) 2025 Amateur Repeater Directory Contributors
+
+  This source code is licensed under the Apache License, Version 2.0 (Apache-2.0).
+  You may not use this file except in compliance with the License.
+  You may obtain a copy of the License at:
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+  Data files included in the ARD-RepeaterList GitHub repository are
+  licensed under the Creative Commons CC0 1.0 Universal (CC0-1.0) 
+  Public Domain Dedication.
+
+  To view a copy of this license, visit:
+
+      https://creativecommons.org/publicdomain/zero/1.0/
+*/
+
+/* =========================================================
+   BASE PAGE LAYOUT
+   ========================================================= */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.toolbar,
+.footer {
+    flex: 0 0 auto;
+    z-index: 1030;
+}
+
+.main-container {
+    flex: 1 1 auto;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.table-sm td,
+.table-sm th {
+    font-size: 0.75rem;
+}
+
+/* =========================================================
+   SIDEBAR (LEFT/RIGHT PANEL) + PROPERTIES
+   ========================================================= */
+.sidebar {
+    width: 300px;
+    max-width: 90vw;
+    min-width: 150px;
+    resize: horizontal;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid var(--bs-border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+}
+
+.sidebar.hidden {
+    display: none !important;
+}
+
+.drag-handle {
+    width: 5px;
+    cursor: ew-resize;
+    background: var(--bs-border-color);
+    flex-shrink: 0;
+}
+
+/* Apply a modern system‐font to the Repeater Properties sidebar */
+/* Smaller, more compact font in the sidebar properties */
+#sidebar,
+#sidebar th,
+#sidebar td {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* shrink to about 14px (0.875rem) */
+    font-size: 0.825rem;
+    line-height: 1.1;
+}
+
+#sidebar table th {
+    white-space: nowrap;
+    font-weight: 600;
+    /* semibold */
+}
+
+#sidebar h5 {
+    font-size: 1rem;
+    /* ~16px */
+    margin-bottom: 0.5rem;
+}
+
+/* Repeater property table: narrow first column, scrollable body */
+#repeater-properties {
+    width: 100%;
+    table-layout: fixed;
+}
+
+#repeater-properties th {
+    white-space: nowrap;
+    width: 1%;
+    vertical-align: top;
+}
+
+#repeater-properties td {
+    width: 99%;
+    word-wrap: break-word;
+}
+
+.repeater-properties-wrapper {
+    max-height: 65vh;
+    /* Adjust as needed */
+    overflow-y: auto;
+}
+
+/* Right-side fixed sidebar */
+.main-container.right-sidebar {
+    flex-direction: row-reverse;
+}
+
+.main-container.right-sidebar .sidebar {
+    border-right: 0;
+    border-left: 1px solid var(--bs-border-color);
+}
+
+/* =========================================================
+   MAP (LEAFLET) + INTERACTION
+   ========================================================= */
+.map-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.leaflet-container {
+    touch-action: manipulation;
+}
+
+/* Stop long-press from selecting page text while interacting with the map */
+#map.leaflet-container {
+    -webkit-touch-callout: none;
+    /* no iOS copy/lookup bubble */
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    /* keep: also helps double-tap handling */
+}
+
+/* If you want to allow selecting/copying text inside popups, re-enable there */
+#map .leaflet-popup-content {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* ==== Dark Map Mode for Leaflet Tiles (Filter Approach) ==== */
+/* Enhanced blues/greens for dark mode */
+#map.leaflet-dark-mode .leaflet-tile-pane {
+    filter: brightness(44%)
+        /* brighten tiles a bit */
+        contrast(125%)
+        /* slightly toned down contrast */
+        saturate(160%)
+        /* strong color enhancement */
+        sepia(6%)
+        /* slight warmth */
+        hue-rotate(-10deg);
+    /* cool the tone slightly */
+    will-change: filter;
+    /* hint to browser for GPU acceleration */
+}
+
+/* Keep your markers bright */
+#map.leaflet-dark-mode .leaflet-marker-icon,
+#map.leaflet-dark-mode .leaflet-marker-shadow,
+#map.leaflet-dark-mode .leaflet-marker-cluster-icon {
+    filter: none !important;
+}
+
+/* Ensure marker glow composites correctly */
+#map .leaflet-marker-pane {
+    isolation: isolate;
+}
+
+/* BLINKING LEAFLET NODE and LOS */
+/* Light-map pulse (blue) */
+#map .leaflet-marker-icon.is-selected {
+    z-index: 1000 !important;
+    will-change: filter;
+    animation: markerGlowLight 1.3s ease-in-out infinite;
+}
+
+/* Dark-map pulse (orange) — more specific to override light rule */
+#map.leaflet-dark-mode .leaflet-marker-pane .leaflet-marker-icon.is-selected {
+    animation: markerGlowDark 1.3s ease-in-out infinite !important;
+}
+
+/* Keyframes: blue */
+@keyframes markerGlowLight {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 rgba(66, 165, 245, .98)) drop-shadow(0 0 0 rgba(66, 165, 245, .60)) drop-shadow(0 0 0 rgba(66, 165, 245, .28));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgba(66, 165, 245, .98)) drop-shadow(0 0 22px rgba(66, 165, 245, .60)) drop-shadow(0 0 34px rgba(66, 165, 245, .28));
+    }
+}
+
+/* Keyframes: orange */
+@keyframes markerGlowDark {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0 rgba(255, 160, 0, .98)) drop-shadow(0 0 0 rgba(255, 160, 0, .60)) drop-shadow(0 0 0 rgba(255, 160, 0, .28));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgba(255, 160, 0, .98)) drop-shadow(0 0 22px rgba(255, 160, 0, .60)) drop-shadow(0 0 34px rgba(255, 160, 0, .28));
+    }
+}
+
+/* Cluster text color */
+.marker-cluster div {
+    color: #000 !important;
+    /* force black text */
+}
+
+/* Leaflet popup theming (Bootstrap light/dark) */
+/*
+.leaflet-bs-popup {
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    color: var(--bs-body-color);
+}
+*/
+[data-bs-theme="dark"] .leaflet-popup-content-wrapper {
+    background-color: #212529;
+    /* Bootstrap dark background */
+    color: #f8f9fa;
+    /* Bootstrap light text */
+    border: 1px solid #495057;
+}
+
+[data-bs-theme="dark"] .leaflet-popup-tip {
+    background: #212529;
+}
+
+[data-bs-theme="light"] .leaflet-popup-content-wrapper {
+    background-color: #fff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+}
+
+[data-bs-theme="dark"] .leaflet-popup-content {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+}
+
+[data-bs-theme="light"] .leaflet-popup-content {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+}
+
+/* =========================================================
+   MODALS — GLOBAL & RESPONSIVE
+   ========================================================= */
+.modal-content {
+    border-radius: .5rem;
+}
+
+.modal-body {
+    overflow-y: hidden !important;
+}
+
+/* Global modal responsiveness */
+@media (max-width: 575.98px) {
+    .modal-dialog {
+        max-width: 100vw;
+        margin: 0.5rem auto;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+@media (min-width:576px) {
+    .modal-dialog {
+        max-width: 480px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    #btn-export {
+        display: none !important;
+    }
+}
+
+/* =========================================================
+   LOGIN MODAL (HEADER + INPUT TAGS + HINT)
+   ========================================================= */
+.login-header-icon {
+    font-size: 1.6rem;
+    margin-right: .5rem;
+}
+
+.input-tag-right {
+    background-color: var(--bs-secondary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-left: 0;
+    position: relative;
+    font-weight: 600;
+    padding: .375rem .9rem;
+    color: var(--bs-secondary-color);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.input-tag-right::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid var(--bs-secondary-bg);
+}
+
+.password-hint {
+    font-size: .9rem;
+}
+
+/* =========================================================
+   TOOLBAR & FILTER MODAL
+   ========================================================= */
+/* Make independent toggles (Ping/RX/TX) visibly selected like the theme buttons */
+.btn-outline-secondary.active {
+    background-color: var(--bs-secondary);
+    color: var(--bs-body-bg);
+    border-color: var(--bs-secondary);
+}
+
+/* Compact filter modal */
+#filterModal .modal-dialog {
+    max-width: 660px;
+}
+
+#filterModal .nav-tabs .nav-link {
+    padding: .4rem .9rem;
+}
+
+#filterModal .filter-box {
+    border: 1px solid var(--bs-border-color);
+    border-radius: .5rem;
+    padding: 1rem;
+}
+
+.form-switch.form-switch-sm .form-check-input {
+    width: 2.2em;
+    height: 1.2em;
+}
+
+.form-switch.form-switch-sm .form-check-label {
+    margin-left: .5rem;
+    font-size: .95rem;
+}
+
+#filterModal .tab-content {
+    transition: min-height .25s ease;
+}
+
+/* Mobile toolbar tightening */
+@media (max-width:575.98px) {
+    .toolbar .container-fluid {
+        flex-wrap: wrap;
+        gap: .25rem;
+    }
+
+    .toolbar .me-2 {
+        margin-right: .25rem !important;
+    }
+
+    .toolbar .ms-2 {
+        margin-left: .25rem !important;
+    }
+
+    .toolbar .btn-sm,
+    .toolbar .form-select-sm {
+        margin-bottom: .25rem;
+    }
+
+    .toolbar-controls {
+        flex-wrap: wrap;
+        gap: .25rem;
+        margin-left: 0 !important;
+    }
+
+    .toolbar .ms-auto {
+        margin-left: 0 !important;
+    }
+
+    .toolbar .vr {
+        display: none !important;
+    }
+}
+
+/* =========================================================
+   FOOTER (SOCIAL ICONS, LAYOUT)
+   ========================================================= */
+.footer .social a {
+    color: var(--bs-secondary-color);
+    font-size: 1.25rem;
+    margin: 0 .35rem;
+    text-decoration: none;
+}
+
+.footer .social a:hover {
+    color: var(--bs-primary);
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0 1.5rem;
+}
+
+@media (max-width:575.98px) {
+    .footer-inner {
+        justify-content: center;
+    }
+}
+
+.footer .social {
+    display: flex;
+    gap: .35rem;
+}
+
+/* Brand colors for social icons (preview) */
+.footer .social a[aria-label="YouTube"],
+.footer .social a[aria-label="YouTube"]:hover {
+    color: #FF0000;
+}
+
+.footer .social a[aria-label="Discord"],
+.footer .social a[aria-label="Discord"]:hover {
+    color: #5865F2;
+}
+
+.footer .social a[aria-label="Twitter"],
+.footer .social a[aria-label="Twitter"]:hover {
+    color: #1DA1F2;
+}
+
+.footer .social a[aria-label="Reddit"],
+.footer .social a[aria-label="Reddit"]:hover {
+    color: #FF4500;
+}
+
+.footer .social a[aria-label="Wix Blog"],
+.footer .social a[aria-label="Wix Blog"]:hover {
+    color: #FAAD4D;
+}
+
+.footer .bi {
+    font-size: 1.6em;
+    /* Change this number for larger/smaller icons */
+    vertical-align: middle;
+    /* Keeps them aligned if you add text later */
+}
+
+/* =========================================================
+   RESPONSIVE HELPERS (HIDE TEXT/LABELS)
+   ========================================================= */
+@media (max-width: 1023px) {
+    .btn-label {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    .hide-on-tablet {
+        display: none !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+
+    /* 575.98px is Bootstrap's xs breakpoint—phones only */
+    .login-label {
+        display: none !important;
+    }
+}
+
+/* =========================================================
+   REPEATER CONTEXT MODAL (VIEW REPEATER DIALOG)
+   (Order preserved so later overrides still win)
+   ========================================================= */
+#repeaterContextModal .modal-content {
+    font-size: 0.925rem;
+}
+
+/* Buttons in this modal slightly smaller */
+#repeaterContextModal .modal-content .btn {
+    font-size: 0.75rem !important;
+}
+
+/* Reduce header vertical padding by half */
+#repeaterContextModal .modal-header {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+/* Force exact centering in viewport */
+#repeaterContextModal .modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Checked state: darker background and black text for status toggles */
+#pingOption:checked+label {
+    background-color: rgba(255, 215, 0, 1) !important;
+    color: #000 !important;
+}
+
+#rxOption:checked+label {
+    background-color: rgba(13, 110, 253, 0.8) !important;
+    color: #000 !important;
+}
+
+#txOption:checked+label {
+    background-color: rgba(20, 115, 70, 0.8) !important;
+    color: #000 !important;
+}
+
+/* Pulsating red glow for toggle online button */
+.pulsate {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.8);
+    }
+
+    70% {
+        box-shadow: 0 0 10px 10px rgba(255, 0, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
+/* Context — click-through backdrop, draggable header, etc. */
+#repeaterContextModal {
+    pointer-events: none !important;
+}
+
+/* Dialog and its content accept clicks (empty block preserved) */
+#repeaterContextModal .modal-dialog,
+#repeaterContextModal .modal-content,
+#repeaterContextModal .modal-header,
+#repeaterContextModal .btn-close {}
+
+/* Remove Bootstrap centering to avoid flex capturing touch (override — must come after fixed centering) */
+#repeaterContextModal .modal-dialog {
+    position: absolute;
+    margin: 0;
+}
+
+/* Draggable cursor on header */
+#repeaterContextModal .modal-header {
+    cursor: move;
+}
+
+/* Shrink the X close-button in the modal header */
+#repeaterContextModal .modal-header .btn-close {
+    width: 1rem;
+    height: .2rem;
+    padding: 0.25rem;
+}
+
+/* Shrink & make the gear icon clickable */
+#repeaterContextModal .modal-header .bi-gear {
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Ping/RX/TX toolbar buttons active state */
+#btn-ping.active {
+    background-color: rgba(255, 215, 0, 1) !important;
+    color: #000 !important;
+}
+
+#btn-rx.active {
+    background-color: rgba(13, 110, 253, 0.8) !important;
+    color: #000 !important;
+}
+
+#btn-tx.active {
+    background-color: rgba(20, 115, 70, 0.8) !important;
+    color: #000 !important;
+}
+
+/* =========================================================
+   ABOUT MODAL / BANNER
+   (Order preserved so later scoped rules can override early ones)
+   ========================================================= */
+:root {
+    --banner-base: #3E77AB;
+    /* ARD blue */
+}
+
+#topBanner {
+    margin: 0;
+    padding: 0.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--banner-base);
+    color: #fff;
+    font-family: sans-serif;
+    font-size: 0.8rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* 1) Force wide responsive width */
+#aboutModal .modal-dialog {
+    max-width: 90vw !important;
+    width: auto !important;
+}
+
+/* 2) Cap overall height */
+#aboutModal .modal-content {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 3) Scroll only the body */
+#aboutModal .modal-body {
+    overflow-y: auto;
+    max-height: calc(80vh - 5rem);
+}
+
+/* Responsive logo with text wrap */
+.about-logo {
+    width: 40%;
+    /* occupies a good portion on large screens */
+    max-width: 300px;
+    /* cap size */
+    height: auto;
+    float: left;
+    margin: 0 1rem 1rem 0;
+}
+
+@media (max-width: 768px) {
+    .about-logo {
+        width: 80%;
+        /* larger on small */
+        max-width: none;
+        float: none;
+        display: block;
+        margin: 0 auto 1rem;
+    }
+}
+
+/* Scoped only to the About modal (later — overrides the earlier wide rule) */
+#aboutModal .modal-dialog {
+    max-width: 800px;
+    width: 100%;
+}
+
+#aboutModal .modal-header {
+    position: relative;
+}
+
+#aboutModal .modal-header::after {
+    content: "";
+    display: block;
+    height: 1px;
+    width: 60%;
+    margin: 0.5rem auto 0;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.15), transparent);
+}
+
+#aboutModal .about-logo {
+    max-width: 150px;
+    margin: 0 1.5rem 1rem 0;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================================
+   LOS MODAL + THEME TOKENS
+   ========================================================= */
+/* LOS modal sizing */
+#losModal .modal-dialog {
+    max-width: 95vw;
+}
+
+#losModalImg {
+    width: 100%;
+    height: auto;
+    max-height: 78vh;
+    object-fit: contain;
+}
+
+/* Optional: allow resize for demos */
+#losModal .modal-content {
+    resize: both;
+    overflow: auto;
+}
+
+/* LOS chart theme tokens */
+:root {
+    --los-axis: #444;
+    --los-title: #111;
+    --los-legend: #222;
+    --los-grid: #e0e0e0;
+    --los-grid-opacity: .6;
+    --los-terrain-fill: #90caf955;
+    --los-terrain-stroke: #64b5f6;
+    --los-losline: #111;
+    --los-fresnel: #b3e5fc66;
+    --los-worst: #2e7d32;
+    --los-worst-stroke: #fff;
+    --los-endpoint-label: #222;
+}
+
+/* Dark mode (if you toggle data-theme="dark" on <body>) */
+[data-theme="dark"] {
+    --los-axis: #cfd8dc;
+    --los-title: #eceff1;
+    --los-legend: #eceff1;
+    --los-grid: #455a64;
+    --los-grid-opacity: .5;
+    --los-terrain-fill: #81d4fa33;
+    --los-terrain-stroke: #4fc3f7;
+    --los-losline: #e0e0e0;
+    --los-fresnel: #4fc3f744;
+    --los-worst: #ef9a9a;
+    --los-worst-stroke: #263238;
+    --los-endpoint-label: #eceff1;
+}
+
+/* Light (Bootstrap) */
+:root,
+[data-bs-theme="light"] {
+    --los-axis: #444;
+    --los-title: #111;
+    --los-legend: #222;
+    --los-grid: #e0e0e0;
+    --los-grid-opacity: .6;
+    --los-terrain-fill: #90caf955;
+    --los-terrain-stroke: #64b5f6;
+    --los-losline: #111;
+    --los-fresnel: #b3e5fc66;
+    --los-worst: #2e7d32;
+    --los-worst-stroke: #fff;
+    --los-endpoint-label: #222;
+}
+
+/* Dark (Bootstrap) */
+[data-bs-theme="dark"] {
+    --los-axis: #cfd8dc;
+    --los-title: #eceff1;
+    --los-legend: #eceff1;
+    --los-grid: #455a64;
+    --los-grid-opacity: .5;
+    --los-terrain-fill: #81d4fa33;
+    --los-terrain-stroke: #4fc3f7;
+    --los-losline: #e0e0e0;
+    --los-fresnel: #4fc3f744;
+    --los-worst: #ef9a9a;
+    --los-worst-stroke: #263238;
+    --los-endpoint-label: #eceff1;
+}
+
+/* =========================================================
+   DIALOG-SPECIFIC SMALL UTILS
+   ========================================================= */
+/* Keep the right-hand gray label boxes the same width, fluid with font size */
+#dlgAddHomeLoc .coord-label {
+    min-width: 10ch;
+    display: flex;
+    justify-content: center;
+}
+
+/* =========================================================
+   Repeater Drawer
+   ========================================================= */
+
+/* === Repeater Drawer (Offcanvas) ========================================= */
+#repeaterDrawer.offcanvas {
+    width: min(100vw, 980px);
+    /* roomy on desktop, full width on small screens */
+}
+
+/* Scroll container for sticky header */
+#repeaterDrawer .table-responsive {
+    max-height: 65vh;
+    overflow: auto;
+}
+
+/* === Table Base ========================================================== */
+#repTable {
+    table-layout: fixed;
+    /* honor fixed column widths */
+}
+
+/* Clickable, sticky header */
+#repTable thead th {
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bs-table-bg, #fff);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .04);
+}
+
+/* Sort indicator glyph */
+#repTable .sort {
+    margin-left: .25rem;
+    opacity: .6;
+}
+
+/* Truncate long comments to keep layout stable */
+#repTable .truncate {
+    max-width: 24ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* === Filter Row (under header) ========================================== */
+#repFilters th {
+    background: var(--bs-body-bg);
+    position: sticky;
+    top: 36px;
+    /* match header height */
+    z-index: 1;
+}
+
+#repFilters .form-control-sm,
+#repFilters .form-select-sm {
+    min-width: 6.5rem;
+}
+
+/* Tighter filter controls for narrow columns */
+#fBand,
+#fToneMode,
+#fDuplex,
+#fMode {
+    min-width: 4.5rem !important;
+    width: 4.5rem;
+}
+
+#fDistMax {
+    min-width: 4rem !important;
+    width: 4rem;
+    text-align: right;
+}
+
+#fToneTx,
+#fOffset {
+    min-width: 4.5rem !important;
+    width: 4.5rem;
+    text-align: right;
+}
+
+#fFreqSub {
+    min-width: 6rem !important;
+    width: 6rem;
+}
+
+/* frequency contains */
+
+/* === Column Widths (compact) ============================================ */
+/* Generic narrow utility */
+#repTable th.col-narrow,
+#repTable td.col-narrow {
+    width: 60px !important;
+    max-width: 60px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Frequency cell a bit wider for readability */
+#repTable th[data-key="OutputFrequency"],
+#repTable td.cell-freq {
+    width: 110px;
+    max-width: 110px;
+    text-align: right;
+}
+
+/* Distance column: fixed + right-aligned */
+#repTable th[data-key="Distance"],
+#repTable td.cell-distance {
+    width: 70px !important;
+    max-width: 70px !important;
+    text-align: right;
+}
+
+/* Offset column: fixed + right-aligned (shows 2 decimals in JS) */
+#repTable th[data-key="Offset"],
+#repTable td.cell-offset {
+    width: 80px;
+    max-width: 80px;
+    text-align: right;
+}
+
+/* VALIDATION */
+/*.form-control {
+    border-radius: .95rem;
+}*/
+/* if you like the pill look */
+/*.form-control {
+    border-radius: .95rem;
+}*/
+/* if you like the pill look */
+
