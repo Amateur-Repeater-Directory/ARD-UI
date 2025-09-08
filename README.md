@@ -25,7 +25,7 @@ Technically, ARD is extremely lightweight, fast, and technology-agnostic. It’s
 
    <img width="110" alt="image" src="https://github.com/user-attachments/assets/e810da19-b3e8-4e1c-b5af-11bc26462604" />
 
-4) From within VS Code choose 'File' -> 'Open Folder' and choose the 'wwwroot' folder
+4) From within VS Code choose 'File' -> 'Open Folder' and choose the 'website' folder
 
 5) Right mouse on the Index.html file and choose 'Open with Liver Server' and you're running the 'Amateur Repeater Directory' application locally.
 
