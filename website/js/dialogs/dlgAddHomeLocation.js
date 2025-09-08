@@ -56,6 +56,22 @@ export class DlgAddHomeLocation {
 
         // Show
         bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static' }).show();
+
+        nameInput.focus();
+    }
+
+    _validateField(ctrlId, feedbackId, validator, errorMessage) {
+        const ctrl = document.getElementById(ctrlId);
+        const feedback = document.getElementById(feedbackId);
+        if (!ctrl || !feedback) return false;
+
+        if (!validator(ctrl.value)) {
+            UtilitiesService.setInputControlError(ctrl, feedback, errorMessage);
+            return false;
+        } else {
+            UtilitiesService.clearInputControlError(ctrl, feedback);
+            return true;
+        }
     }
 
     /**
@@ -63,12 +79,27 @@ export class DlgAddHomeLocation {
      * Hides modal on success.
      */
     async onSubmit() {
-        const modalEl = document.getElementById('dlgAddHomeLoc');
-        const form = document.getElementById('formAddHomeLoc');
-        const nameInput = document.getElementById('hlName');
-        const nameFeedback = document.getElementById('hlName-feedback');
-        const latInput = document.getElementById('hlLat');
-        const lngInput = document.getElementById('hlLng');
+
+        const byId = (id) => document.getElementById(id);
+
+        // Safe numeric parser
+        const num = (id, digits, defaultValue = '') => {
+            const el = byId(id);
+            if (!el) return null;
+            const val = el.value.trim();
+            if (val === '') return defaultValue;
+            const parsed = parseFloat(val);
+            if (isNaN(parsed)) return null;
+            return digits != null ? parseFloat(parsed.toFixed(digits)) : parsed;
+        };
+
+        const modalEl = byId('dlgAddHomeLoc');
+        const form = byId('formAddHomeLoc');
+        const nameInput = byId('hlName');
+        const nameFeedback = byId('hlName-feedback');
+        const latInput = byId('hlLat');
+        const lngInput = byId('hlLng');
+
         if (!modalEl || !form || !nameInput || !latInput || !lngInput) return false;
 
         // Uniqueness check
@@ -87,11 +118,15 @@ export class DlgAddHomeLocation {
             return false;
         }
 
+        if (!this._validateField('hlAgl', 'hlAgl-feedback',
+            UtilitiesService.validateAboveGroundLevel, 'Invalid Antenna Level')) isError = true;
+
         // Save
         try {
             const newLocation = await HomeLocationService.addHomeLocation({
                 locationId: UtilitiesService.guid(),
                 name,
+                AboveGroundLevel: num('hlAgl', 2, 0.00),
                 latitude: latInput.value,
                 longitude: lngInput.value,
             });
