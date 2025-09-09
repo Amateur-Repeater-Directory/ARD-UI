@@ -182,7 +182,7 @@ export class UtilitiesService {
 
 	static validateAboveGroundLevel(val) {
 		// Allow empty / not required
-		if (val == null || val === '') return true;
+		if (val == null || val === '') return false;
 
 		const num = Number(val);
 

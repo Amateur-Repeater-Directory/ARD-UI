@@ -120,7 +120,6 @@ export class LocalProvider {
         if (!this.sendSettingsUpdates) return true;
         const prev = read(K.SETTINGS, {});
         write(K.SETTINGS, { ...prev, ...settings, SourceOfEvent: source });
-        console.info('MapSettings - ' + source);
         return true;
     }
 

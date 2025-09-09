@@ -97,7 +97,6 @@ export class DlgRepeaterContext {
             if (err.status && err.status === 401) {
                 UtilitiesService.displayToast('warning', 'You must be logged in to use the Line-of-Sight feature.');
             }
-            console.error(err);
             alert('LOS failed: ' + (err.message || err));
         }
     }

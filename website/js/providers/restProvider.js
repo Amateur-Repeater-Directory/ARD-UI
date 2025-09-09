@@ -120,9 +120,6 @@ export class RestProvider {
             .auth(`Bearer ${localStorage.getItem(token)}`)
             .post(settings) // ?source=...
             .json();
-
-        console.info('MapSettings - ' + source);
-
     }
 
     //async repeaters_GetAll() {
