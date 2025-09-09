@@ -149,36 +149,20 @@ export class MapService {
         }
 
         map.on('locateactivate', () => {
-            locating = true;
-            lastTarget = null;
-            armGuard();
 
             // Catch the immediate flyTo (cached) or the animated flyTo (fresh fix)
             map.once('moveend', () => {
 
-                const center = map.getCenter();
-                const target = lastTarget || center; // prefer GPS fix if we got it
+                UtilitiesService.displayToast('success', 'Find your house and double-click (or long press mobile) on it to add your "Home" location. This will ensure your Line-of-Sight charts are accurate.', 9000);
 
-                if (isLocationWithinTwoMiles(target)) {
-                    locating = false;
-                    clearGuard();
-                    return;
-                }
+                // const center = map.getCenter();
+                // AppState.services.dlgAddHomeLocation.showAddHomeLocModal(center.lat, center.lng);
 
-                // distance guard if we did get a fix
-                if (!lastTarget || center.distanceTo(lastTarget) <= 50) {
-                    AppState.services.dlgAddHomeLocation.showAddHomeLocModal(target.lat, target.lng);
-                }
-
-                // optional: belt-and-suspenders stop
                 queueMicrotask(() => {
                     try { lc.stop(); } catch { }
                     try { lc.stopFollowing?.(); } catch { }
                     try { map.stopLocate?.(); } catch { }
                 });
-
-                locating = false; // consume the cycle
-                clearGuard();
             });
         });
 
@@ -192,14 +176,5 @@ export class MapService {
                 lastTarget = L.latLng(lat, lng);
             }
         });
-
-        function armGuard() {
-            clearGuard();
-            // if moveend never comes (edge cases), disarm after 5s
-            guardTimer = setTimeout(() => { locating = false; }, 5000);
-        }
-        function clearGuard() {
-            if (guardTimer) { clearTimeout(guardTimer); guardTimer = null; }
-        }
     }
 }

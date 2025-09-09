@@ -71,6 +71,9 @@ export class DlgAddEditRepeater {
 
         this.bindRepeaterToDialog(repeater);
 
+        const titleEl = modalEl.querySelector('.modal-title');
+        titleEl.textContent = "Edit Repeater: ";
+
         // Show
         bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static' }).show();
     }
@@ -89,6 +92,9 @@ export class DlgAddEditRepeater {
         }
 
         this.bindRepeaterToDialog(new Repeater());
+
+        const titleEl = modalEl.querySelector('.modal-title');
+        titleEl.textContent = "Add Repeater: ";
 
         bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static' }).show();
     }
@@ -309,6 +315,7 @@ export class DlgAddEditRepeater {
         const stateEl = document.getElementById('rptrAddEdit_state');
         const countyEl = document.getElementById('rptrAddEdit_county');
         const nearestCityEl = document.getElementById('rptrAddEdit_nearestCity');
+        const aboveGroundLevel = document.getElementById('rptrAddEdit_aboveGroundLevel');
 
         const editBtn = document.getElementById('btnEditRepeater');
         if (editBtn) {
@@ -474,6 +481,15 @@ export class DlgAddEditRepeater {
             });
         };
         [outputFreq, offset, inputFreq].forEach(attachNumericSanitizer);
+
+        const attachNumericSanitizerNoDecimal = (inp) => {
+            if (!inp) return;
+            inp.addEventListener('input', () => {
+                let v = inp.value.replace(/[^0-9]/g, '');
+                inp.value = v;
+            });
+        };
+        [aboveGroundLevel].forEach(attachNumericSanitizerNoDecimal);
 
         // Lat/Lng sanitization
         const attachLatLngSanitizer = (inp) => {

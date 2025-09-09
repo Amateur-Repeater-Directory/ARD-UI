@@ -34,8 +34,6 @@
     <link rel="icon" type="image/png" href="/favicon-32.png?v=3" sizes="32x32">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" sizes="180x180">
 
-    <script type="module">import { DataLoader } from '/models/DataLoader.js'</script>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Amateur Repeater Directory</title>
@@ -52,7 +50,7 @@
     <link rel="stylesheet" href="style.css" />
 
 
-    <script type="module" src="./main.js?v=2025-09-08.1"></script>
+    <script type="module" src="./main.js?v=2025-09-09.1"></script>
 
 </head>
 <body class="bg-body text-body">
@@ -948,7 +946,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <input id="hlAgl" class="form-control" placeholder="Antenna Height (Hand Held = 5ft)" maxlength="60" required>
+                        <input id="hlAgl" class="form-control" placeholder="Antenna Height (Hand Held = 5ft)" maxlength="4" 
+                               inputmode="numeric"  pattern="^\d{1,4}$" title="Whole feet only" required>
                         <div id="hlAgl-feedback" class="invalid-feedback"></div>
                     </div>
 
@@ -963,10 +962,10 @@
                     </div>
                 </div>
 
-                <div class="modal-footer py-2">
-                    <button class="btn btn-primary" type="submit">Save</button>
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                </div>
+                    <div class="modal-footer py-2">
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    </div>
             </form>
         </div>
     </div>
@@ -981,7 +980,7 @@
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Repeater:</h5>&nbsp;&nbsp;&nbsp;
                         <input id="rptrAddEdit_callsign" name="rptrAddEdit_callsign" type="text"
-                               class="form-control" placeholder="Callsign"
+                               class="form-control" placeholder="Callsign" maxlength="8"
                                data-bs-toggle="tooltip" title="tooltip goes here"
                                style="max-width: 200px;">
                         <div id="rptrAddEdit_callsignFeedback" class="invalid-feedback"></div>
@@ -1018,7 +1017,7 @@
                                     <div class="col-md-4">
                                         <label for="rptrAddEdit_outputFrequency" class="form-label">Output Freq</label>
                                         <input id="rptrAddEdit_outputFrequency" name="rptrAddEdit_outputFrequency"
-                                               type="text" class="form-control" required
+                                               type="text" class="form-control" required maxlength="11"
                                                aria-describedby="outputFrequencyFeedback" inputmode="decimal"
                                                pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
                                                title="tooltip goes here">
@@ -1054,7 +1053,7 @@
                                             Input Frequency
                                         </label>
                                         <input id="rptrAddEdit_inputFrequency" name="rptrAddEdit_inputFrequency"
-                                               type="text" class="form-control" required
+                                               type="text" class="form-control" required maxlength="11"
                                                aria-describedby="inputFrequencyFeedback" inputmode="decimal"
                                                pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
                                                title="tooltip goes here">
@@ -1169,9 +1168,9 @@
                                                 Above Ground Level (ft)
                                             </label>
                                             <input id="rptrAddEdit_aboveGroundLevel" name="rptrAddEdit_aboveGroundLevel"
-                                                   type="text" class="form-control" inputmode="decimal"
-                                                   pattern="^[0-9]+(\.[0-9]+)?$" data-bs-toggle="tooltip"
-                                                   title="tooltip goes here">
+                                                   type="text" class="form-control" inputmode="numeric" maxlength="4"
+                                                   pattern="^\d{1,4}$" data-bs-toggle="tooltip"
+                                                   title="Whole feet only">
                                             <div id="rptrAddEdit_aboveGroundLevelFeedback" class="invalid-feedback"></div>
                                         </div>
                                         <div class="col-md-3 d-flex align-items-end">
